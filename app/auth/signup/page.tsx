@@ -1,0 +1,175 @@
+'use client';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [role, setRole] = useState<'passenger' | 'operator'>('passenger');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // Simulate signup
+    setTimeout(() => {
+      setIsLoading(false);
+      if (role === 'operator') {
+        router.push('/operator');
+      } else {
+        router.push('/dashboard');
+      }
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col md:flex-row font-sans">
+      {/* Right side: Abstract Imagery (Swapped for Signup to provide variety) */}
+      <div className="hidden md:flex flex-1 bg-primary relative overflow-hidden items-center justify-center order-2 md:order-1">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop" 
+            alt="Travel abstract" 
+            className="w-full h-full object-cover opacity-30 grayscale"
+          />
+        </div>
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#3280f9] rounded-full blur-[120px] opacity-20"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#feb700] rounded-full blur-[120px] opacity-20"></div>
+        
+        <div className="z-10 text-white max-w-md p-8">
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mb-8">
+            <span className="material-symbols-outlined text-3xl">rocket_launch</span>
+          </div>
+          <h1 className="text-4xl font-bold mb-4 leading-tight">Elevate your travel experience.</h1>
+          <p className="text-lg opacity-80 leading-relaxed">
+            {role === 'passenger' 
+              ? 'Create a free account to unlock exclusive member pricing, track your journeys, and earn VIVID Elite points.'
+              : 'Join the fastest growing platform for transit operators. Scale your fleet operations with our next-gen tools.'}
+          </p>
+          
+          <div className="mt-12 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-[#feb700] text-[#6b4b00] flex items-center justify-center">
+                <span className="material-symbols-outlined text-[14px]">check</span>
+              </div>
+              <span className="text-sm font-medium">{role === 'passenger' ? 'Zero booking fees on first trip' : '0% commission for first 30 days'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-[#feb700] text-[#6b4b00] flex items-center justify-center">
+                <span className="material-symbols-outlined text-[14px]">check</span>
+              </div>
+              <span className="text-sm font-medium">{role === 'passenger' ? 'Access to P2P Resale Marketplace' : 'Advanced Fleet Analytics'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Left side: Form */}
+      <div className="flex-1 flex items-center justify-center bg-[#f8f9fb] p-8 order-1 md:order-2 overflow-y-auto">
+        <div className="w-full max-w-md my-auto py-8">
+          <div className="flex justify-end mb-8 md:hidden">
+            <Link href="/" className="text-2xl font-black text-primary tracking-tight">VIVID</Link>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-primary mb-2">Create an account</h2>
+          <p className="text-[#46464f] mb-8">Join the VIVID network today.</p>
+
+          <div className="flex p-1 bg-surface-variant/30 rounded-xl mb-8 border border-outline-variant/30">
+            <button 
+              onClick={() => setRole('passenger')}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${role === 'passenger' ? 'bg-white shadow-sm text-primary border border-outline/10' : 'text-on-surface-variant'}`}
+            >
+              Passenger
+            </button>
+            <button 
+              onClick={() => setRole('operator')}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${role === 'operator' ? 'bg-white shadow-sm text-primary border border-outline/10' : 'text-on-surface-variant'}`}
+            >
+              Operator
+            </button>
+          </div>
+
+          <form onSubmit={handleSignup} className="space-y-4">
+            {role === 'operator' && (
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1">Company Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Green Line Transit Ltd." 
+                  className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  required 
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1">First Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Alexander" 
+                  className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1">Last Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Hamilton" 
+                  className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  required 
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-bold text-primary mb-1">Email Address</label>
+              <input 
+                type="email" 
+                placeholder="hello@example.com" 
+                className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                required 
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-bold text-primary mb-1">Password</label>
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                required 
+              />
+              <p className="text-xs text-[#777680] mt-1.5">Must be at least 8 characters.</p>
+            </div>
+
+            <div className="pt-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" required className="mt-1 w-4 h-4 rounded border-outline/50 text-primary focus:ring-primary" />
+                <span className="text-xs text-[#46464f] leading-relaxed">
+                  I agree to the <a href="#" className="font-bold text-primary hover:underline">Terms of Service</a> and <a href="#" className="font-bold text-primary hover:underline">Privacy Policy</a>.
+                </span>
+              </label>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-primary text-white font-bold py-4 rounded-xl flex items-center justify-center hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70 disabled:active:scale-100 mt-4"
+            >
+              {isLoading ? (
+                <span className="material-symbols-outlined animate-spin">refresh</span>
+              ) : (
+                "Create Account"
+              )}
+            </button>
+          </form>
+
+          <p className="text-center mt-8 text-sm text-[#46464f]">
+            Already have an account? <Link href="/auth/login" className="text-primary font-bold hover:underline">Sign in</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
