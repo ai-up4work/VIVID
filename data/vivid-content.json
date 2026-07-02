@@ -1,0 +1,55 @@
+{
+  "images": {
+    "userAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000&auto=format&fit=crop",
+    "heroBackground": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop",
+    "ctaCardStack": [
+      {
+        "image": "/screen.png",
+        "title": "VIVID Gold Class",
+        "subtitle": "Reimagining road travel since 2023"
+      },
+      {
+        "image": "/screen2.png",
+        "title": "VIP Sleeper Suites",
+        "subtitle": "Full-recline comfort on every long-haul route"
+      },
+      {
+        "image": "/screen3.png",
+        "title": "Concierge Service",
+        "subtitle": "White-glove hospitality from boarding to arrival"
+      }
+    ]
+  },
+  "fleetPartners": [
+    {
+      "id": "green-line",
+      "name": "Green Line",
+      "logo": "/brands/green-line.png",
+      "initials": "GL"
+    },
+    {
+      "id": "sakura",
+      "name": "Sakura",
+      "logo": "/brands/sakura.png",
+      "initials": "SK"
+    },
+    {
+      "id": "hanif",
+      "name": "Hanif",
+      "logo": "/brands/hanif.png",
+      "initials": "HF"
+    },
+    {
+      "id": "shohagh",
+      "name": "Shohagh",
+      "logo": "/brands/shohagh.png",
+      "initials": "SH"
+    },
+    {
+      "id": "euro-coach",
+      "name": "Euro Coach",
+      "logo": "/brands/euro-coach.png",
+      "initials": "EC"
+    }
+  ]
+}

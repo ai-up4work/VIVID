@@ -2,25 +2,17 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-import { AppLayout } from '@/components/AppLayout';
 
 export default function Dashboard() {
   const router = useRouter();
 
   return (
-    <AppLayout>
       <main className="max-w-[1440px] mx-auto px-4 md:px-16 py-8">
         {/* Header Section */}
         <section className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-[48px] leading-[1.2] tracking-[-0.02em] font-bold text-primary mb-2">Welcome back, Alexander</h1>
             <p className="text-[16px] leading-[1.6] text-[#46464f]">Manage your journeys, tickets, and rewards in one place.</p>
-          </div>
-          <div className="mt-2 md:mt-0">
-            <span className="inline-flex items-center rounded-full bg-[#dfe0ff] px-3 py-1 text-[12px] font-bold text-primary border border-primary/10">
-              <span className="material-symbols-outlined text-[18px] mr-1">dashboard</span>
-              Client Dashboard
-            </span>
           </div>
         </section>
 
@@ -259,11 +251,10 @@ export default function Dashboard() {
           <img alt="Travel Banner" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop" />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-transparent flex flex-col justify-center px-8 md:px-12">
             <h2 className="text-white text-[48px] font-bold max-w-lg mb-4 leading-tight tracking-tight">Travel more, earn more.</h2>
-            <button className="bg-[#feb700] text-[#6b4b00] text-[20px] font-semibold px-8 py-4 rounded-full w-fit hover:scale-105 transition-transform">Explore Rewards</button>
+            <button className="bg-[#feb700] text-[#6b4b00] text-[16px] font-semibold px-8 py-4 rounded-full w-fit hover:scale-105 transition-transform">Explore Rewards</button>
           </div>
         </section>
       </main>
-    </AppLayout>
   );
 }
 
