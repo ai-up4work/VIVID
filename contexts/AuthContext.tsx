@@ -1,21 +1,12 @@
 'use client';
-import { createContext, useContext, ReactNode } from 'react';
-
-/**
- * MOCK AUTH — ALWAYS LOGGED IN
- * ----------------------------------------------------------------------
- * Auth is stubbed out so the UI can be built/reviewed without wiring up
- * real login flows yet. Every consumer of useAuth() gets a fake logged-in
- * user automatically — no <AuthProvider> placement required.
- * Swap this file for real Supabase auth later.
- * ----------------------------------------------------------------------
- */
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 export type UserRole = 'passenger' | 'operator' | 'super_admin';
 
 export type MockUser = {
   id: string;
   email: string;
+  phone: string;
   role: UserRole;
   user_metadata: {
     full_name: string;
@@ -23,17 +14,26 @@ export type MockUser = {
   };
 };
 
+export type LoginParams = {
+  identifier?: string;
+  email?: string;
+  phone?: string;
+  role?: UserRole;
+  fullName?: string;
+};
+
 type AuthContextValue = {
   user: MockUser | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  login: (email: string, role?: UserRole, fullName?: string) => void;
+  login: (params?: LoginParams) => void;
   logout: () => void;
 };
 
-const MOCK_USER: MockUser = {
+const DEFAULT_MOCK_USER: MockUser = {
   id: 'mock-user-1',
   email: 'alex.ham@vivid.com',
+  phone: '+94771234567',
   role: 'passenger',
   user_metadata: {
     full_name: 'Alex Ham',
@@ -41,26 +41,56 @@ const MOCK_USER: MockUser = {
   },
 };
 
-const defaultValue: AuthContextValue = {
-  user: MOCK_USER,
-  isLoggedIn: true,
-  isLoading: false,
-  login: () => {},
-  logout: () => {},
-};
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const AuthContext = createContext<AuthContextValue>(defaultValue);
-
-// Provider kept as a no-op passthrough so existing <AuthProvider> wrappers
-// in the tree don't need to be removed — they just no longer do anything.
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<MockUser | null>(DEFAULT_MOCK_USER);
+
+  const login: AuthContextValue['login'] = (params = {}) => {
+    const {
+      identifier,
+      email,
+      phone,
+      role = 'passenger',
+      fullName = DEFAULT_MOCK_USER.user_metadata.full_name,
+    } = params;
+
+    let resolvedEmail = email || DEFAULT_MOCK_USER.email;
+    let resolvedPhone = phone || DEFAULT_MOCK_USER.phone;
+
+    if (identifier) {
+      if (identifier.includes('@')) {
+        resolvedEmail = identifier;
+      } else {
+        resolvedPhone = identifier;
+      }
+    }
+
+    setUser({
+      id: 'mock-user-1',
+      email: resolvedEmail,
+      phone: resolvedPhone,
+      role,
+      user_metadata: {
+        full_name: fullName || DEFAULT_MOCK_USER.user_metadata.full_name,
+        avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          fullName || DEFAULT_MOCK_USER.user_metadata.full_name
+        )}&background=050a44&color=fff`,
+      },
+    });
+  };
+
+  const logout = () => setUser(null);
+
   return (
-    <AuthContext.Provider value={defaultValue}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, isLoading: false, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 }

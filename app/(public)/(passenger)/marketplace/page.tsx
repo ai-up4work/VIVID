@@ -4,27 +4,10 @@ import Link from 'next/link';
 export default function TicketResaleMarketplace() {
   return (
     <div className="bg-[#f8f9fb] text-[#191c1e] min-h-screen font-sans">
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 flex justify-between items-center px-4 md:px-[64px] w-full max-w-[1440px] mx-auto h-20 bg-[#f8f9fb] shadow-sm">
-        <div className="flex items-center gap-[32px]">
-          <Link href="/" className="text-[20px] leading-[1.4] font-bold text-[#000000]">VIVID</Link>
-          <nav className="hidden md:flex items-center gap-[24px]">
-            <Link className="text-[14px] leading-[1.6] text-[#46464f] hover:text-[#bdc2ff] transition-colors" href="/search">Marketplace</Link>
-            <Link className="text-[14px] leading-[1.6] text-[#000000] border-b-2 border-[#000000] font-bold pb-1" href="/search">Ticket Resale</Link>
-            <Link className="text-[14px] leading-[1.6] text-[#46464f] hover:text-[#bdc2ff] transition-colors" href="#">Offers</Link>
-            <Link className="text-[14px] leading-[1.6] text-[#46464f] hover:text-[#bdc2ff] transition-colors" href="#">Support</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-[16px]">
-          <button className="text-[14px] leading-[1.6] text-[#46464f] hover:text-[#000000] px-4 py-2 transition-all duration-200 active:scale-95">Sign In</button>
-          <button className="bg-[#050A44] text-[#ffffff] px-6 py-2.5 rounded-lg text-[14px] leading-[1.2] tracking-[0.01em] font-semibold transition-all duration-200 active:scale-95 shadow-sm">Register</button>
-        </div>
-      </header>
-
       <main className="max-w-[1440px] mx-auto px-4 md:px-[64px] py-[32px]">
         {/* Hero Section / Sell CTA */}
-        <section className="mb-[48px] rounded-[32px] overflow-hidden relative min-h-[320px] flex items-center bg-[#0f144c] p-[32px]">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050A44] via-[#050A44]/80 to-transparent z-0"></div>
+        <section className="mb-[48px] rounded-[32px] overflow-hidden relative min-h-[320px] flex items-center bg-[#0f144c]/50 p-[32px]">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050A44]/60 via-[#050A44]/40 to-transparent z-0"></div>
           <img className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop" alt="Resale Banner" />
           <div className="relative z-10 max-w-2xl px-[24px]">
             <h1 className="text-[32px] leading-[1.3] font-bold text-[#ffffff] mb-[16px] tracking-tight">Turn Your Unused Tickets Into Cash</h1>

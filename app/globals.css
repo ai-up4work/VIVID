@@ -164,3 +164,9 @@ html {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.seat-female {
+  background-color: #fce4ec;
+  border: 1px solid rgba(194, 24, 91, 0.3);
+  color: #050a44;
+}

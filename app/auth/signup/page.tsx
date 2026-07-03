@@ -1,19 +1,35 @@
+// app/auth/signup/page.tsx
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [role, setRole] = useState<'passenger' | 'operator'>('passenger');
   const [isLoading, setIsLoading] = useState(false);
+
+  const [companyName, setCompanyName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate signup
+    // Simulate signup, then actually set the mock user via login() so
+    // AuthContext reflects the new account (matches login page's pattern).
+    // Swap this whole handler for a real Supabase sign-up call later.
     setTimeout(() => {
       setIsLoading(false);
+      const fullName = `${firstName} ${lastName}`.trim() || 'Alex Ham';
+      login({ email, phone, role, fullName });
+
       if (role === 'operator') {
         router.push('/operator');
       } else {
@@ -94,7 +110,9 @@ export default function SignupPage() {
               <div>
                 <label className="block text-sm font-bold text-primary mb-1">Company Name</label>
                 <input 
-                  type="text" 
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Green Line Transit Ltd." 
                   className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                   required 
@@ -105,7 +123,9 @@ export default function SignupPage() {
               <div>
                 <label className="block text-sm font-bold text-primary mb-1">First Name</label>
                 <input 
-                  type="text" 
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   placeholder="Alexander" 
                   className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                   required 
@@ -114,7 +134,9 @@ export default function SignupPage() {
               <div>
                 <label className="block text-sm font-bold text-primary mb-1">Last Name</label>
                 <input 
-                  type="text" 
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   placeholder="Hamilton" 
                   className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                   required 
@@ -125,17 +147,38 @@ export default function SignupPage() {
             <div>
               <label className="block text-sm font-bold text-primary mb-1">Email Address</label>
               <input 
-                type="email" 
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="hello@example.com" 
                 className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                 required 
               />
             </div>
+
+            {/* Phone number — required at signup. This becomes the number used
+                to auto-verify contact info later in the booking flow, so we
+                collect and (in a real build) verify it once, up front, instead
+                of asking again on every booking. */}
+            <div>
+              <label className="block text-sm font-bold text-primary mb-1">Phone Number</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+94 77 123 4567"
+                className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                required
+              />
+              <p className="text-xs text-[#777680] mt-1.5">We'll use this to verify your bookings — no need to re-enter it each time.</p>
+            </div>
             
             <div>
               <label className="block text-sm font-bold text-primary mb-1">Password</label>
               <input 
-                type="password" 
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" 
                 className="w-full px-4 py-3 bg-white border border-outline/30 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                 required 
@@ -145,7 +188,13 @@ export default function SignupPage() {
 
             <div className="pt-2">
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" required className="mt-1 w-4 h-4 rounded border-outline/50 text-primary focus:ring-primary" />
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  required
+                  className="mt-1 w-4 h-4 rounded border-outline/50 text-primary focus:ring-primary"
+                />
                 <span className="text-xs text-[#46464f] leading-relaxed">
                   I agree to the <a href="#" className="font-bold text-primary hover:underline">Terms of Service</a> and <a href="#" className="font-bold text-primary hover:underline">Privacy Policy</a>.
                 </span>
