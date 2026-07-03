@@ -655,75 +655,76 @@ export default function SearchPage() {
                 {filteredSchedules.map((s) => (
                   <div
                     key={s.id}
-                    className="bg-white rounded-[1rem] p-4 border border-[#e1e2e4]/60 shadow-[0px_4px_24px_rgba(0,0,0,0.04)] transition-transform hover:-translate-y-1"
+                    className="bg-white rounded-xl border border-[#c7c5d1] shadow-sm p-[24px] hover:shadow-md transition-shadow"
                   >
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#f1f3f9] border border-[#e1e2e4]/40 flex items-center justify-center font-bold text-xs text-[#050a44]">
+                    {/* Header: navy OperatorBadge + gold class pill, same pattern as
+                        dashboard/my-bookings/marketplace ticket rows */}
+                    <div className="flex justify-between items-center mb-[20px]">
+                      <div className="flex items-center gap-[12px]">
+                        <div className="w-11 h-11 rounded-lg bg-[#050a44] text-white flex items-center justify-center text-[13px] font-bold flex-shrink-0">
                           {s.operatorInitials}
                         </div>
-                        <span className="font-bold text-[#050a44]">{s.operator}</span>
+                        <span className="text-[15px] font-bold text-[#050a44]">{s.operator}</span>
                       </div>
-                      <span
-                        className={`px-3 sm:px-4 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${
-                          s.busType === 'AC'
-                            ? 'bg-[#fff8e6] text-[#b47c00]'
-                            : 'bg-[#f1f3f9] text-[#050a44]'
-                        }`}
-                      >
-                        {s.busType === 'AC' ? 'AC Bus' : 'Non AC Bus'}
+                      <span className="inline-block bg-[#feb700]/15 text-[#7c5800] text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                        {s.busType === 'AC' ? 'AC Bus' : 'Non-AC Bus'}
                       </span>
                     </div>
 
-                    {/* Route visualization — click to open the route map overlay for this bus */}
+                    {/* Route visualization — click to open the route map overlay for this bus.
+                        Wrapped in the bg-[#f2f4f6] rounded-xl panel used for boarding/drop-off
+                        on the seats page and the route blocks on dashboard + my-bookings. */}
                     <button
                       type="button"
                       onClick={() => setRouteSchedule(s)}
                       title="View route on map"
-                      className="w-full flex justify-between items-center py-6 border-y border-[#e1e2e4]/60 mb-6 group cursor-pointer"
+                      className="w-full flex justify-between items-center bg-[#f2f4f6] rounded-xl p-[16px] mb-[16px] group cursor-pointer"
                     >
-                      <div className="text-center">
-                        <div className="font-bold text-lg text-[#050a44]">{fromCode}</div>
-                        <div className="text-[11px] font-medium text-[#46464f]">{from}</div>
-                        <div className="font-extrabold text-base text-[#050a44] mt-1">{s.departure}</div>
+                      <div className="text-left">
+                        <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-1">{from}</p>
+                        <p className="text-[20px] font-extrabold text-[#050a44]">{fromCode}</p>
+                        <p className="text-[12px] font-medium text-[#46464f] mt-0.5">{s.departure}</p>
                       </div>
-                      <div className="flex-1 px-2 sm:px-4 flex flex-col items-center">
-                        <span className="text-[10px] sm:text-[11px] font-bold text-[#46464f] mb-1 group-hover:text-[#050a44] transition-colors">
+                      <div className="flex-1 px-[16px] flex flex-col items-center">
+                        <span className="text-[11px] font-bold text-[#46464f] mb-1 group-hover:text-[#050a44] transition-colors">
                           {s.durationLabel}
                         </span>
-                        <div className="relative w-full h-[1px] border-t-2 border-dashed border-[#c7c5d1] group-hover:border-[#050a44] flex items-center justify-center transition-colors">
-                          <BusIcon className="absolute w-4 h-4 bg-white px-0.5 text-[#c7c5d1] group-hover:text-[#050a44] transition-colors" />
+                        <div className="relative w-full border-t border-dashed border-[#c7c5d1] group-hover:border-[#050a44] transition-colors">
+                          <BusIcon className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#f2f4f6] px-0.5 text-[#050a44]" />
                         </div>
-                        <span className="text-[10px] sm:text-[11px] font-bold text-[#46464f] mt-1 group-hover:text-[#050a44] transition-colors">
+                        <span className="text-[11px] font-bold text-[#46464f] mt-2">
                           {s.stopLabel}
                         </span>
-                        <span className="text-[9px] font-bold text-[#c7c5d1] group-hover:text-[#050a44] mt-1 tracking-wide uppercase transition-colors">
+                        <span className="text-[10px] font-bold text-[#050a44] mt-1 tracking-wide uppercase group-hover:underline">
                           View route
                         </span>
                       </div>
-                      <div className="text-center">
-                        <div className="font-bold text-lg text-[#050a44]">{toCode}</div>
-                        <div className="text-[11px] font-medium text-[#46464f]">{to}</div>
-                        <div className="font-extrabold text-base text-[#050a44] mt-1">{s.arrival}</div>
+                      <div className="text-right">
+                        <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-1">{to}</p>
+                        <p className="text-[20px] font-extrabold text-[#050a44]">{toCode}</p>
+                        <p className="text-[12px] font-medium text-[#46464f] mt-0.5">{s.arrival}</p>
                       </div>
                     </button>
 
-                    <div className="flex justify-between items-center px-1 mb-4">
-                      <div className="flex items-center gap-2 text-[#46464f]">
-                        <Armchair className="w-5 h-5" />
-                        <span className="text-[13px] font-bold">{s.seatsRemaining} Remaining</span>
+                    {/* Footer: seats + price + CTA, same button treatment as
+                        Buy Now / Grab Now / Select Seats elsewhere in the app */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-[6px]">
+                        <Armchair className="w-[18px] h-[18px] text-[#46464f]" />
+                        <span className={`text-[13px] font-bold ${s.seatsRemaining <= 5 ? 'text-[#ba1a1a]' : 'text-[#46464f]'}`}>
+                          {s.seatsRemaining} Remaining
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-black text-[#050a44]">${s.fare}</span>
+                      <div className="flex items-center gap-[16px]">
+                        <p className="text-[22px] font-extrabold text-[#050a44]">${s.fare}</p>
+                        <Link
+                          href={`/seats/${s.id}`}
+                          className="bg-[#050a44] text-white rounded-xl px-6 py-2.5 text-[13px] font-bold hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
+                        >
+                          Select Seats
+                        </Link>
                       </div>
                     </div>
-
-                    <Link
-                      href={`/seats/${s.id}`}
-                      className="block w-full text-center py-3 bg-[#050a44] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all"
-                    >
-                      Select Seats
-                    </Link>
                   </div>
                 ))}
               </div>

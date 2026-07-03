@@ -1026,63 +1026,6 @@ export default function MyBookingsPage() {
               </div>
             )}
           </section>
-
-          {/* Past bookings */}
-          <section>
-            <div className="flex items-center justify-between mb-[16px]">
-              <h2 className="text-[18px] font-bold text-[#050a44] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#46464f]">history</span>
-                Past Bookings
-              </h2>
-            </div>
-
-            {past.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-[#c7c5d1] shadow-sm p-[32px] text-center">
-                <p className="text-[13px] text-[#46464f]">No past bookings yet.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-[#c7c5d1]">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[#f2f4f6] border-b border-[#e1e2e4]">
-                      <th className="px-6 py-3 font-bold text-[11px] text-[#050a44] uppercase tracking-wider">Route</th>
-                      <th className="px-6 py-3 font-bold text-[11px] text-[#050a44] uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 font-bold text-[11px] text-[#050a44] uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 font-bold text-[11px] text-[#050a44] uppercase tracking-wider text-right">Fare</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e1e2e4]">
-                    {past.map((booking) => (
-                      <tr key={booking.id} className="hover:bg-[#f2f4f6] transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2.5">
-                            <OperatorBadge operator={booking.operator} />
-                            <div className="flex flex-col">
-                              <span className="font-bold text-[#050a44] text-[13px]">
-                                {booking.from} → {booking.to}
-                              </span>
-                              <span className="text-[11px] text-[#46464f]">{booking.busNumber}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-[#46464f] text-[13px] font-medium">{booking.date}</td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2.5 py-0.5 text-[10px] font-extrabold rounded uppercase tracking-wider ${STATUS_BADGE[booking.status].className}`}
-                          >
-                            {STATUS_BADGE[booking.status].label}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-[#050a44] text-[13px]">
-                          ${booking.totalPrice.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
         </div>
 
         {/* Sidebar — informational only now; actions live on the booking they affect */}
