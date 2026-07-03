@@ -1,19 +1,18 @@
 // app/(public)/(passenger)/marketplace/page.tsx
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { FLEET_PARTNERS, RESALE_TICKETS } from '@/data/resale-tickets';
+import { ArrowUpDown, ChevronDown, SlidersHorizontal, Shield } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
-// Restyled to match the rest of the passenger app (search, my-bookings,
-// dashboard, seats/payment): navy #050a44 as the primary color, rounded-xl
-// cards with border-[#c7c5d1] + shadow-sm, the same badge and button
-// treatments used everywhere else, and the same OperatorBadge pattern as
-// my-bookings/dashboard instead of one-off colored circles.
-//
-// Ticket data now lives in @/data/resale-tickets so this list and the
-// marketplace/buy/[ticketId] checkout flow can't drift out of sync.
+// Filter bar now matches the search page's pattern exactly: pill toggles +
+// a portal-based dropdown, all in one row, instead of a separate sidebar.
+// Operators stays multi-select (checkboxes) since that's existing behavior;
+// Price becomes a plain ascending/descending toggle like the search page's
+// Departure time / Price pills.
 // ---------------------------------------------------------------------------
 
 function OperatorBadge({ initials }: { initials: string }) {
@@ -24,21 +23,109 @@ function OperatorBadge({ initials }: { initials: string }) {
   );
 }
 
+type DropdownKey = 'operators' | null;
+
 export default function TicketResaleMarketplace() {
   const [fromQuery, setFromQuery] = useState('');
   const [toQuery, setToQuery] = useState('');
   const [dateQuery, setDateQuery] = useState('');
   const [operatorFilter, setOperatorFilter] = useState<string[]>([]);
 
+  // --- Price sort — plain toggle, same pattern as search page's Price pill ---
+  const [sortByPrice, setSortByPrice] = useState(false);
+  const [sortAsc, setSortAsc] = useState(true);
+
+  // --- Dropdown state (Operators only) ---
+  const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const menuPanelRef = useRef<HTMLDivElement>(null);
+  const operatorsBtnRef = useRef<HTMLButtonElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+
   const toggleOperator = (id: string) => {
     setOperatorFilter((prev) => (prev.includes(id) ? prev.filter((o) => o !== id) : [...prev, id]));
   };
 
+  const toggleDropdown = (key: Exclude<DropdownKey, null>, btnRef: React.RefObject<HTMLButtonElement | null>) => {
+    setOpenDropdown((prev) => {
+      if (prev === key) return null;
+      const rect = btnRef.current?.getBoundingClientRect();
+      if (rect) {
+        setMenuPos({ top: rect.bottom + 8, left: rect.left });
+      }
+      return key;
+    });
+  };
+
+  const handlePriceSort = () => {
+    if (sortByPrice) {
+      setSortAsc((prev) => !prev);
+    } else {
+      setSortByPrice(true);
+      setSortAsc(true);
+    }
+  };
+
+  const resetFilters = () => {
+    setOperatorFilter([]);
+    setSortByPrice(false);
+    setSortAsc(true);
+    setOpenDropdown(null);
+  };
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      const insideBar = filterBarRef.current?.contains(target);
+      const insideMenu = menuPanelRef.current?.contains(target);
+      if (!insideBar && !insideMenu) {
+        setOpenDropdown(null);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpenDropdown(null);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!openDropdown) return;
+    const closeOnMove = () => setOpenDropdown(null);
+    window.addEventListener('scroll', closeOnMove, true);
+    window.addEventListener('resize', closeOnMove);
+    return () => {
+      window.removeEventListener('scroll', closeOnMove, true);
+      window.removeEventListener('resize', closeOnMove);
+    };
+  }, [openDropdown]);
+
   const filteredTickets = useMemo(() => {
-    if (operatorFilter.length === 0) return RESALE_TICKETS;
-    const names = FLEET_PARTNERS.filter((f) => operatorFilter.includes(f.id)).map((f) => f.name.toLowerCase());
-    return RESALE_TICKETS.filter((t) => names.some((n) => t.operator.toLowerCase().includes(n)));
-  }, [operatorFilter]);
+    let result = RESALE_TICKETS;
+    if (operatorFilter.length > 0) {
+      const names = FLEET_PARTNERS.filter((f) => operatorFilter.includes(f.id)).map((f) => f.name.toLowerCase());
+      result = result.filter((t) => names.some((n) => t.operator.toLowerCase().includes(n)));
+    }
+    if (sortByPrice) {
+      result = [...result].sort((a, b) =>
+        sortAsc ? a.listedPrice - b.listedPrice : b.listedPrice - a.listedPrice
+      );
+    }
+    return result;
+  }, [operatorFilter, sortByPrice, sortAsc]);
+
+  const operatorsLabel =
+    operatorFilter.length === 0
+      ? 'Operators'
+      : operatorFilter.length === 1
+      ? FLEET_PARTNERS.find((f) => f.id === operatorFilter[0])?.name ?? 'Operators'
+      : `${operatorFilter.length} operators`;
+
+  const activeFilterCount = operatorFilter.length + (sortByPrice ? 1 : 0);
 
   return (
     <main className="max-w-[1440px] mx-auto px-4 md:px-[64px] py-[32px]">
@@ -77,8 +164,8 @@ export default function TicketResaleMarketplace() {
         </div>
       </section>
 
-      {/* Search & Filter Bar — same input treatment as seats/payment pages */}
-      <div className="bg-white rounded-xl p-[24px] shadow-sm border border-[#c7c5d1] mb-[32px]">
+      {/* Search Bar — same input treatment as seats/payment pages */}
+      <div className="bg-white rounded-xl p-[24px] shadow-sm border border-[#c7c5d1] mb-[24px]">
         <div className="flex flex-col md:flex-row gap-[16px] md:items-end">
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-[16px] w-full">
             <div>
@@ -127,164 +214,208 @@ export default function TicketResaleMarketplace() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-[24px] items-start">
-        {/* Sidebar filters */}
-        <aside className="hidden md:flex md:col-span-1 flex-col gap-[24px]">
-          <div className="bg-white rounded-xl p-[20px] shadow-sm border border-[#c7c5d1]">
-            <h3 className="text-[13px] font-bold text-[#050a44] mb-[12px]">Operators</h3>
-            <div className="space-y-[10px]">
+      {/* Filter bar — pill row matching the search page's filter section pattern:
+          plain-toggle Price pill, Operators dropdown (portal, multi-select), Reset pill. */}
+      <div ref={filterBarRef} className="flex items-center gap-2.5 overflow-x-auto no-scrollbar mb-[16px]">
+        {/* Price sort — plain toggle, same pattern as search page's Price pill */}
+        <button
+          onClick={handlePriceSort}
+          className={`flex items-center gap-2 pl-4 pr-4 py-2.5 rounded-full text-sm font-bold border transition-colors whitespace-nowrap shrink-0 ${
+            sortByPrice
+              ? 'border-[#050a44] bg-[#050a44] text-white'
+              : 'border-[#e1e2e4] bg-white text-[#050a44] hover:bg-[#f1f3f9]'
+          }`}
+        >
+          <ArrowUpDown
+            className={`w-4 h-4 transition-transform ${sortByPrice && !sortAsc ? 'rotate-180' : ''} ${
+              sortByPrice ? 'text-white/70' : 'text-[#c7c5d1]'
+            }`}
+          />
+          Price
+        </button>
+
+        {/* Operators dropdown — multi-select checkboxes, sourced from FLEET_PARTNERS */}
+        <div className="relative shrink-0">
+          <button
+            ref={operatorsBtnRef}
+            onClick={() => toggleDropdown('operators', operatorsBtnRef)}
+            className={`flex items-center gap-2 pl-4 pr-3.5 py-2.5 rounded-full text-sm font-bold transition-colors whitespace-nowrap border ${
+              openDropdown === 'operators' || operatorFilter.length > 0
+                ? 'border-[#050a44] bg-[#050a44] text-white'
+                : 'border-[#e1e2e4] bg-white text-[#050a44] hover:bg-[#f1f3f9]'
+            }`}
+          >
+            <span className="truncate max-w-[130px]">{operatorsLabel}</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${openDropdown === 'operators' ? 'rotate-180' : ''} ${
+                openDropdown === 'operators' || operatorFilter.length > 0 ? 'text-white/70' : 'text-[#c7c5d1]'
+              }`}
+            />
+          </button>
+          {openDropdown === 'operators' && menuPos && createPortal(
+            <div
+              ref={menuPanelRef}
+              style={{ position: 'fixed', top: menuPos.top, left: menuPos.left }}
+              className="z-50 w-60 max-h-72 overflow-y-auto bg-white rounded-xl shadow-[0px_8px_32px_rgba(0,0,0,0.16)] border border-[#e1e2e4]/60 p-2"
+            >
               {FLEET_PARTNERS.map((partner) => (
-                <label key={partner.id} className="flex items-center gap-[12px] cursor-pointer group">
+                <label
+                  key={partner.id}
+                  className="flex items-center gap-2.5 py-2 px-2.5 rounded-lg hover:bg-[#f1f3f9] cursor-pointer"
+                >
                   <input
                     checked={operatorFilter.includes(partner.id)}
                     onChange={() => toggleOperator(partner.id)}
-                    className="rounded border-[#c7c5d1] text-[#050a44] focus:ring-[#050a44] w-4 h-4"
+                    className="w-4 h-4 rounded text-[#050a44] focus:ring-[#050a44] border-[#c7c5d1]"
                     type="checkbox"
                   />
-                  <span className="text-[13px] font-medium text-[#46464f] group-hover:text-[#050a44]">
-                    {partner.name}
-                  </span>
+                  <span className="text-sm font-medium text-[#46464f]">{partner.name}</span>
                 </label>
               ))}
-            </div>
-          </div>
+            </div>,
+            document.body
+          )}
+        </div>
 
-          <div className="bg-white rounded-xl p-[20px] shadow-sm border border-[#c7c5d1]">
-            <h3 className="text-[13px] font-bold text-[#050a44] mb-[12px]">Price Range</h3>
-            <input className="w-full accent-[#050a44] h-1 bg-[#e1e2e4] rounded-lg appearance-none cursor-pointer" type="range" />
-            <div className="flex justify-between mt-[8px] text-[11px] font-bold text-[#9a9ba5]">
-              <span>$10</span>
-              <span>$500</span>
-            </div>
-          </div>
+        {/* Reset — same icon-first treatment as search page's Reset pill */}
+        <button
+          onClick={resetFilters}
+          disabled={activeFilterCount === 0}
+          aria-label="Reset filters"
+          className={`flex items-center gap-1.5 pl-3 pr-3 py-2.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-colors ${
+            activeFilterCount > 0
+              ? 'text-[#E74C3C] border border-[#E74C3C]/30 bg-[#E74C3C]/5 hover:bg-[#E74C3C]/10'
+              : 'text-[#c7c5d1] border border-[#e1e2e4] cursor-not-allowed'
+          }`}
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          Reset{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+        </button>
 
-          <div className="bg-[#f2f4f6] rounded-xl p-[16px] border border-[#e1e2e4]">
-            <h4 className="text-[13px] font-bold text-[#050a44] mb-[4px] flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px]">shield</span>
-              Safety Tip
-            </h4>
-            <p className="text-[12px] text-[#46464f] leading-relaxed">
-              All resale tickets are verified by VIVID and transferred instantly to your account after payment.
-            </p>
-          </div>
-        </aside>
+        {/* Safety tip — compact inline note, takes the sidebar's place in the row */}
+        <div className="hidden md:flex items-center gap-1.5 ml-auto pl-3 pr-4 py-2 rounded-full bg-[#f2f4f6] border border-[#e1e2e4] shrink-0">
+          <Shield className="w-3.5 h-3.5 text-[#050a44]" />
+          <span className="text-[11px] font-medium text-[#46464f] whitespace-nowrap">
+            All resale tickets verified &amp; transferred instantly
+          </span>
+        </div>
+      </div>
 
-        {/* Results list */}
-        <div className="md:col-span-3 space-y-[16px]">
-          {filteredTickets.length === 0 ? (
-            <div className="bg-white rounded-xl border border-[#c7c5d1] shadow-sm p-[32px] text-center">
-              <p className="text-[13px] text-[#46464f]">No resale tickets match your filters.</p>
-              <button
-                onClick={() => setOperatorFilter([])}
-                className="mt-[12px] text-[#050a44] font-bold text-[13px] hover:underline"
+      {/* Results list — full width now that the sidebar is gone */}
+      <div className="space-y-[16px]">
+        {filteredTickets.length === 0 ? (
+          <div className="bg-white rounded-xl border border-[#c7c5d1] shadow-sm p-[32px] text-center">
+            <p className="text-[13px] text-[#46464f]">No resale tickets match your filters.</p>
+            <button
+              onClick={resetFilters}
+              className="mt-[12px] text-[#050a44] font-bold text-[13px] hover:underline"
+            >
+              Reset filters
+            </button>
+          </div>
+        ) : (
+          filteredTickets.map((ticket) =>
+            ticket.featured ? (
+              <div
+                key={ticket.id}
+                className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#050a44] to-[#0a146b] text-white p-[24px] flex flex-col md:flex-row items-center gap-[24px] shadow-sm"
               >
-                Reset filters
-              </button>
-            </div>
-          ) : (
-            filteredTickets.map((ticket) =>
-              ticket.featured ? (
-                <div
-                  key={ticket.id}
-                  className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#050a44] to-[#0a146b] text-white p-[24px] flex flex-col md:flex-row items-center gap-[24px] shadow-sm"
-                >
-                  <img
-                    className="absolute inset-0 w-full h-full object-cover opacity-10"
-                    src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop"
-                    alt="Coach interior"
-                  />
-                  <div className="relative z-10 flex-1">
-                    {ticket.tag && (
-                      <span className="inline-block bg-[#feb700] text-[#6b4b00] px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide mb-[12px]">
-                        {ticket.tag}
-                      </span>
-                    )}
-                    <h3 className="text-[22px] font-bold mb-[4px]">Exclusive {ticket.busType}</h3>
-                    <p className="text-[13px] text-white/70 max-w-md">
-                      Single seat available on {ticket.operator}&apos;s {ticket.from} → {ticket.to} route. Priced well
-                      below counter rate.
-                    </p>
+                <img
+                  className="absolute inset-0 w-full h-full object-cover opacity-10"
+                  src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop"
+                  alt="Coach interior"
+                />
+                <div className="relative z-10 flex-1">
+                  {ticket.tag && (
+                    <span className="inline-block bg-[#feb700] text-[#6b4b00] px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide mb-[12px]">
+                      {ticket.tag}
+                    </span>
+                  )}
+                  <h3 className="text-[22px] font-bold mb-[4px]">Exclusive {ticket.busType}</h3>
+                  <p className="text-[13px] text-white/70 max-w-md">
+                    Single seat available on {ticket.operator}&apos;s {ticket.from} → {ticket.to} route. Priced well
+                    below counter rate.
+                  </p>
+                </div>
+                <div className="relative z-10 text-center md:text-right">
+                  <p className="text-[32px] font-extrabold mb-[12px]">${ticket.listedPrice.toFixed(2)}</p>
+                  <Link
+                    href={`/marketplace/buy/${ticket.id}`}
+                    className="inline-block bg-white text-[#050a44] rounded-xl px-6 py-3 text-[13px] font-bold hover:opacity-90 transition-all"
+                  >
+                    Grab Now
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div
+                key={ticket.id}
+                className="bg-white rounded-xl border border-[#c7c5d1] shadow-sm p-[24px] hover:shadow-md transition-shadow"
+              >
+                <div className="flex flex-col md:flex-row justify-between gap-[24px]">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-[16px]">
+                      <div className="flex items-center gap-[12px]">
+                        <OperatorBadge initials={ticket.operatorInitials} />
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#050a44]">{ticket.operator}</h4>
+                          <span className="inline-block mt-[2px] bg-[#feb700]/15 text-[#7c5800] text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                            {ticket.busType}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-0.5">Seat</p>
+                        <p className="text-[14px] font-bold text-[#050a44]">{ticket.seats}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-[#f2f4f6] rounded-xl p-[16px]">
+                      <div>
+                        <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-1">{ticket.from}</p>
+                        <p className="text-[14px] font-bold text-[#050a44]">{ticket.departureTime}</p>
+                      </div>
+                      <div className="flex flex-col items-center px-[16px]">
+                        <span className="material-symbols-outlined text-[#050a44] mb-1">directions_bus</span>
+                        <span className="flex items-center gap-1 bg-[#006e1c]/10 text-[#006e1c] px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                          <span className="material-symbols-outlined text-[13px]">verified</span>
+                          Verified
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-1">{ticket.to}</p>
+                        <p className="text-[14px] font-bold text-[#050a44]">{ticket.arrivalTime}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="relative z-10 text-center md:text-right">
-                    <p className="text-[32px] font-extrabold mb-[12px]">${ticket.listedPrice.toFixed(2)}</p>
+
+                  <div className="md:w-56 flex flex-row md:flex-col justify-between items-center md:items-end md:pl-[24px] md:border-l border-[#e1e2e4] gap-[12px]">
+                    <div className="text-center md:text-right">
+                      <p className="text-[11px] font-medium text-[#9a9ba5] line-through mb-0.5">
+                        ${ticket.originalPrice.toFixed(2)}
+                      </p>
+                      <div className="flex items-baseline gap-[6px] justify-center md:justify-end">
+                        <span className="text-[24px] font-extrabold text-[#050a44]">${ticket.listedPrice.toFixed(2)}</span>
+                        {ticket.tag && (
+                          <span className="bg-[#006e1c]/10 text-[#006e1c] text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {ticket.tag}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-medium text-[#46464f] mt-1">Listed by {ticket.sellerHandle}</p>
+                    </div>
                     <Link
                       href={`/marketplace/buy/${ticket.id}`}
-                      className="inline-block bg-white text-[#050a44] rounded-xl px-6 py-3 text-[13px] font-bold hover:opacity-90 transition-all"
+                      className="w-full md:w-auto text-center bg-[#050a44] text-white rounded-xl px-6 py-2.5 text-[13px] font-bold hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
                     >
-                      Grab Now
+                      Buy Now
                     </Link>
                   </div>
                 </div>
-              ) : (
-                <div
-                  key={ticket.id}
-                  className="bg-white rounded-xl border border-[#c7c5d1] shadow-sm p-[24px] hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col md:flex-row justify-between gap-[24px]">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-[16px]">
-                        <div className="flex items-center gap-[12px]">
-                          <OperatorBadge initials={ticket.operatorInitials} />
-                          <div>
-                            <h4 className="text-[15px] font-bold text-[#050a44]">{ticket.operator}</h4>
-                            <span className="inline-block mt-[2px] bg-[#feb700]/15 text-[#7c5800] text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                              {ticket.busType}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-0.5">Seat</p>
-                          <p className="text-[14px] font-bold text-[#050a44]">{ticket.seats}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between bg-[#f2f4f6] rounded-xl p-[16px]">
-                        <div>
-                          <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-1">{ticket.from}</p>
-                          <p className="text-[14px] font-bold text-[#050a44]">{ticket.departureTime}</p>
-                        </div>
-                        <div className="flex flex-col items-center px-[16px]">
-                          <span className="material-symbols-outlined text-[#050a44] mb-1">directions_bus</span>
-                          <span className="flex items-center gap-1 bg-[#006e1c]/10 text-[#006e1c] px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
-                            <span className="material-symbols-outlined text-[13px]">verified</span>
-                            Verified
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[11px] font-bold text-[#46464f] uppercase tracking-wide mb-1">{ticket.to}</p>
-                          <p className="text-[14px] font-bold text-[#050a44]">{ticket.arrivalTime}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="md:w-56 flex flex-row md:flex-col justify-between items-center md:items-end md:pl-[24px] md:border-l border-[#e1e2e4] gap-[12px]">
-                      <div className="text-center md:text-right">
-                        <p className="text-[11px] font-medium text-[#9a9ba5] line-through mb-0.5">
-                          ${ticket.originalPrice.toFixed(2)}
-                        </p>
-                        <div className="flex items-baseline gap-[6px] justify-center md:justify-end">
-                          <span className="text-[24px] font-extrabold text-[#050a44]">${ticket.listedPrice.toFixed(2)}</span>
-                          {ticket.tag && (
-                            <span className="bg-[#006e1c]/10 text-[#006e1c] text-[10px] px-2 py-0.5 rounded-full font-bold">
-                              {ticket.tag}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] font-medium text-[#46464f] mt-1">Listed by {ticket.sellerHandle}</p>
-                      </div>
-                      <Link
-                        href={`/marketplace/buy/${ticket.id}`}
-                        className="w-full md:w-auto text-center bg-[#050a44] text-white rounded-xl px-6 py-2.5 text-[13px] font-bold hover:opacity-90 active:scale-95 transition-all whitespace-nowrap"
-                      >
-                        Buy Now
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )
+              </div>
             )
-          )}
-        </div>
+          )
+        )}
       </div>
     </main>
   );
