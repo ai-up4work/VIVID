@@ -9,15 +9,25 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex-1">
         {children}
       </div>
-      <footer className="bg-white border-t border-outline/30 mt-12 py-8">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-2xl font-black text-primary">VIVID</div>
-          <p className="text-sm font-medium text-on-surface-variant">© 2026 VIVID SaaS Platform. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-all">Privacy Policy</a>
-            <a href="#" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-all">Terms of Service</a>
-            <a href="#" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-all">Support</a>
-          </div>
+      {/* Footer — same tone/sizing as the rest of the app's fine print */}
+      <footer className="mt-[48px] pt-[24px] border-t border-[#c7c5d1] flex flex-col md:flex-row justify-between items-center gap-[16px]">
+        <div className="text-center md:text-left">
+          <span className="text-[16px] font-bold text-[#050a44]">VIVID</span>
+          <p className="text-[12px] text-[#46464f]">© 2026 VIVID SaaS. All rights reserved.</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-[24px]">
+          <a className="text-[12px] font-medium text-[#46464f] hover:text-[#050a44] underline" href="#">
+            Privacy Policy
+          </a>
+          <a className="text-[12px] font-medium text-[#46464f] hover:text-[#050a44] underline" href="#">
+            Terms of Service
+          </a>
+          <a className="text-[12px] font-medium text-[#46464f] hover:text-[#050a44] underline" href="#">
+            Partner Program
+          </a>
+          <a className="text-[12px] font-medium text-[#46464f] hover:text-[#050a44] underline" href="#">
+            Contact Us
+          </a>
         </div>
       </footer>
     </div>
